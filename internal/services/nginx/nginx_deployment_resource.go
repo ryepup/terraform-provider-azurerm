@@ -120,7 +120,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			ConflictsWith: []string{"auto_scale_profile"},
 			Default:       20,
-			ValidateFunc:  validation.IntPositive,
+			ValidateFunc:  validation.IntAtLeast(0),
 		},
 
 		"auto_scale_profile": {

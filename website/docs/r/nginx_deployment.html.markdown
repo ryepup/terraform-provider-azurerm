@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standard_Monthly` and `basic_Monthly`. Changing this forces a new resource to be created.
 
--> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
+-> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you must set `capacity = 0`. For more information, please refer to the [NGINX Basic plan documentation](https://docs.nginx.com/nginxaas/azure/billing/overview/#basic-plan)
 
 * `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new NGINX Deployment to be created.
 
