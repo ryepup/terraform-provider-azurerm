@@ -119,8 +119,12 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ConflictsWith: []string{"auto_scale_profile"},
-			Default:       20,
 			ValidateFunc:  validation.IntPositive,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+				// the server may return a default capacity of 20 when no
+				// capacity is requested.
+				return oldValue == "20" && newValue == "0"
+			},
 		},
 
 		"auto_scale_profile": {
@@ -681,27 +685,29 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				req.Properties.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
 			}
 
-			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
-				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
-				}
-			}
+			if meta.ResourceData.HasChanges("capacity", "auto_scale_profile") {
+				// always send _something_ in the request, might be empty if the
+				// user wants to return to server-side default values
+				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{}
 
-			if meta.ResourceData.HasChange("auto_scale_profile") && len(model.AutoScaleProfile) > 0 {
-				var autoScaleProfiles []nginxdeployment.ScaleProfile
-				for _, profile := range model.AutoScaleProfile {
-					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
-						Name: profile.Name,
-						Capacity: nginxdeployment.ScaleProfileCapacity{
-							Min: profile.Min,
-							Max: profile.Max,
-						},
-					})
+				if model.Capacity > 0 {
+					req.Properties.ScalingProperties.Capacity = pointer.FromInt64(model.Capacity)
 				}
-				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+
+				if len(model.AutoScaleProfile) > 0 {
+					var autoScaleProfiles []nginxdeployment.ScaleProfile
+					for _, profile := range model.AutoScaleProfile {
+						autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+							Name: profile.Name,
+							Capacity: nginxdeployment.ScaleProfileCapacity{
+								Min: profile.Min,
+								Max: profile.Max,
+							},
+						})
+					}
+					req.Properties.ScalingProperties.AutoScaleSettings = &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
 						Profiles: autoScaleProfiles,
-					},
+					}
 				}
 			}
 

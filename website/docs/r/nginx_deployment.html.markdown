@@ -143,7 +143,10 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the NGINX Deployment should exist. Changing this forces a new NGINX Deployment to be created.
 
-* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values include `standard_Monthly`. Changing this forces a new resource to be created.
+* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values include `standard_Monthly` and `basic_Monthly`. Changing this forces a new resource to be created.
+
+-> **NOTE:** Scaling options like `capacity` or `auto_scale_profile` are only supported when using `sku` `standard_Monthly`. For more information, please refer to the [NGINX pricing plan documentation](https://docs.nginx.com/nginxaas/azure/billing/overview/#pricing-plans)
+
 
 * `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new NGINX Deployment to be created.
 
@@ -255,8 +258,6 @@ An `auto_scale_profile` block supports the following:
 * `min_capacity` - (Required) Specify the minimum number of NGINX capacity units for this NGINX Deployment.
 
 * `max_capacity` - (Required) Specify the maximum number of NGINX capacity units for this NGINX Deployment.
-
--> **NOTE:** If you're using autoscaling, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 ## Attributes Reference
 
